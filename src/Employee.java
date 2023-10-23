@@ -19,40 +19,37 @@ public class Employee {
         this.phoneNumber = phoneNumber;
     }
 
-    // Getter method for the first name
+    /**
+     * Getter methods
+     */
     public String getFirstName() {
         return firstName;
     }
 
-    // Getter method for the last name
     public String getLastName() {
         return lastName;
     }
 
-    // Getter method for the employee ID
     public int getEmployeeID() {
         return employeeID;
     }
 
-    // Getter method for the job title
     public String getJobTitle() {
         return jobTitle;
     }
 
-    // Getter method for the salary
     public double getSalary() {
         return salary;
     }
 
-    // Getter method for the email
     public String getEmail() {
         return email;
     }
 
-    // Getter method for the phone number
     public String getPhoneNumber() {
         return phoneNumber;
     }
+
 
     // Override toString method to provide a string representation of the Employee
     @Override
