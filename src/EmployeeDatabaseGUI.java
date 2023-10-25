@@ -1,21 +1,18 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Random;
-import java.util.regex.Pattern;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 public class EmployeeDatabaseGUI {
-    private JFrame frame;
-    private EmployeeManager employeeManager;
-    private DefaultTableModel tableModel;
-    private JTable employeeTable;
-    private String[] firstNames = {"James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Susan", "Joseph", "Jessica", "Charles", "Karen", "Thomas", "Nancy", "Daniel", "Lisa", "Matthew", "Betty", "Christopher", "Dorothy"};
-    private String[] lastNames = {"Smith", "Johnson", "Brown", "Williams", "Jones", "Miller", "Davis", "García", "Rodriguez", "Martinez", "Hernandez", "López", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "White", "Harris", "Clark", "Lewis", "Young", "Walker"};
-    private String[] jobTitles = {"Programmer", "UI/UX Designer", "Systems Engineer", "Cybersecurity Architect", "Sales", "Data Analyst", "Network Administrator", "Database Administrator", "DevOps Engineer", "Cloud Architect", "Web Developer", "Software Engineer", "IT Support Specialist", "Digital Marketing Specialist", "Product Manager", "Artificial Intelligence (AI) Engineer", "Machine Learning Engineer", "Quality Assurance (QA) Tester", "Business Analyst", "Project Manager", "Network Engineer", "Front-End Developer", "Back-End Developer", "Scrum Master", "Technical Writer"};
+    private final JFrame frame;
+    private final EmployeeManager employeeManager;
+    private final DefaultTableModel tableModel;
+    private final String[] firstNames = {"James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Susan", "Joseph", "Jessica", "Charles", "Karen", "Thomas", "Nancy", "Daniel", "Lisa", "Matthew", "Betty", "Christopher", "Dorothy"};
+    private final String[] lastNames = {"Smith", "Johnson", "Brown", "Williams", "Jones", "Miller", "Davis", "García", "Rodriguez", "Martinez", "Hernandez", "López", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "White", "Harris", "Clark", "Lewis", "Young", "Walker"};
+    private final String[] jobTitles = {"Programmer", "UI/UX Designer", "Systems Engineer", "Cybersecurity Architect", "Sales", "Data Analyst", "Network Administrator", "Database Administrator", "DevOps Engineer", "Cloud Architect", "Web Developer", "Software Engineer", "IT Support Specialist", "Digital Marketing Specialist", "Product Manager", "Artificial Intelligence (AI) Engineer", "Machine Learning Engineer", "Quality Assurance (QA) Tester", "Business Analyst", "Project Manager", "Network Engineer", "Front-End Developer", "Back-End Developer", "Scrum Master", "Technical Writer"};
 
     public EmployeeDatabaseGUI(EmployeeManager employeeManager) {
         this.employeeManager = employeeManager;
@@ -28,7 +25,8 @@ public class EmployeeDatabaseGUI {
                 0
         );
 
-        employeeTable = new JTable(tableModel) {
+        // Make cells non-editable
+        JTable employeeTable = new JTable(tableModel) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; // Make cells non-editable
@@ -43,84 +41,72 @@ public class EmployeeDatabaseGUI {
 
         final Employee[] employee = {null};
 
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                EmployeeDialog dialog = new EmployeeDialog(frame, "Add Employee", employee[0]);
-                dialog.setVisible(true);
+        addButton.addActionListener(e -> {
+            EmployeeDialog dialog = new EmployeeDialog(frame, "Add Employee", employee[0]);
+            dialog.setVisible(true);
 
-                if (dialog.isEmployeeAdded()) {
-                    employee[0] = dialog.getEmployee();
+            if (dialog.isEmployeeAdded()) {
+                employee[0] = dialog.getEmployee();
+                long startTime = System.nanoTime();
+                employeeManager.insertEmployee(employee[0]);
+                long endTime = System.nanoTime();
+                updateEmployeeTable();
+                JOptionPane.showMessageDialog(frame, "Addition time: " + (endTime - startTime) + " ns", "Employee Addition", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        searchButton.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(frame, "Enter Employee ID to search:");
+            if (input != null && !input.isEmpty()) {
+                try {
+                    int employeeID = Integer.parseInt(input);
                     long startTime = System.nanoTime();
-                    employeeManager.insertEmployee(employee[0]);
+                    Employee foundEmployee = employeeManager.searchEmployee(employeeID);
+                    long endTime = System.nanoTime();
+
+                    if (foundEmployee != null) {
+                        displayEmployee(foundEmployee);
+                        JOptionPane.showMessageDialog(frame, "Search time: " + (endTime - startTime) + " ns", "Employee Search", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Employee not found.", "Search Result", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid Employee ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(frame, "Enter Employee ID to delete:");
+            if (input != null && !input.isEmpty()) {
+                try {
+                    int employeeID = Integer.parseInt(input);
+                    long startTime = System.nanoTime();
+                    employeeManager.deleteEmployee(employeeID);
                     long endTime = System.nanoTime();
                     updateEmployeeTable();
-                    JOptionPane.showMessageDialog(frame, "Addition time: " + (endTime - startTime) + " ns", "Employee Addition", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Deletion time: " + (endTime - startTime) + " ns", "Employee Deletion", JOptionPane.INFORMATION_MESSAGE);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid Employee ID.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String input = JOptionPane.showInputDialog(frame, "Enter Employee ID to search:");
-                if (input != null && !input.isEmpty()) {
-                    try {
-                        int employeeID = Integer.parseInt(input);
-                        long startTime = System.nanoTime();
-                        Employee foundEmployee = employeeManager.searchEmployee(employeeID);
-                        long endTime = System.nanoTime();
-
-                        if (foundEmployee != null) {
-                            displayEmployee(foundEmployee);
-                            JOptionPane.showMessageDialog(frame, "Search time: " + (endTime - startTime) + " ns", "Employee Search", JOptionPane.INFORMATION_MESSAGE);
-                        } else {
-                            JOptionPane.showMessageDialog(frame, "Employee not found.", "Search Result", JOptionPane.INFORMATION_MESSAGE);
-                        }
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(frame, "Invalid Employee ID.", "Error", JOptionPane.ERROR_MESSAGE);
+        populateDatabaseButton.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(frame, "Enter number of employees to generate:");
+            if (input != null && !input.isEmpty()) {
+                try {
+                    int numberOfEmployees = Integer.parseInt(input);
+                    long startTime = System.currentTimeMillis();
+                    for (int i = 0; i < numberOfEmployees; i++) {
+                        Employee employee1 = generateRandomEmployee(i + 1);
+                        employeeManager.insertEmployee(employee1);
                     }
-                }
-            }
-        });
-
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String input = JOptionPane.showInputDialog(frame, "Enter Employee ID to delete:");
-                if (input != null && !input.isEmpty()) {
-                    try {
-                        int employeeID = Integer.parseInt(input);
-                        long startTime = System.nanoTime();
-                        employeeManager.deleteEmployee(employeeID);
-                        long endTime = System.nanoTime();
-                        updateEmployeeTable();
-                        JOptionPane.showMessageDialog(frame, "Deletion time: " + (endTime - startTime) + " ns", "Employee Deletion", JOptionPane.INFORMATION_MESSAGE);
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(frame, "Invalid Employee ID.", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            }
-        });
-
-        populateDatabaseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String input = JOptionPane.showInputDialog(frame, "Enter number of employees to generate:");
-                if (input != null && !input.isEmpty()) {
-                    try {
-                        int numberOfEmployees = Integer.parseInt(input);
-                        long startTime = System.currentTimeMillis();
-                        for (int i = 0; i < numberOfEmployees; i++) {
-                            Employee employee = generateRandomEmployee(i + 1, numberOfEmployees);
-                            employeeManager.insertEmployee(employee);
-                        }
-                        long endTime = System.currentTimeMillis();
-                        JOptionPane.showMessageDialog(frame, "Population time: " + (endTime - startTime) + " ms", "Database Population", JOptionPane.INFORMATION_MESSAGE);
-                        updateEmployeeTable();
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(frame, "Invalid number.", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
+                    long endTime = System.currentTimeMillis();
+                    JOptionPane.showMessageDialog(frame, "Population time: " + (endTime - startTime) + " ms", "Database Population", JOptionPane.INFORMATION_MESSAGE);
+                    updateEmployeeTable();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid number.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -140,18 +126,17 @@ public class EmployeeDatabaseGUI {
         JOptionPane.showMessageDialog(frame, employee.toString(), "Employee Details", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private Employee generateRandomEmployee(int currentID, int maxID) {
+    private Employee generateRandomEmployee(int currentID) {
         Random random = new Random();
         String firstName = firstNames[random.nextInt(firstNames.length)];
         String lastName = lastNames[random.nextInt(lastNames.length)];
-        int employeeID = currentID;
         String jobTitle = jobTitles[random.nextInt(jobTitles.length)];
         double randomSalaryBase = 20000 + random.nextInt(80000);
         double randomSalary = randomSalaryBase - (randomSalaryBase % 100);
         String email = firstName.toLowerCase() + "." + lastName.toLowerCase() + "@company.com";
         String phoneNumber = String.format("%010d", random.nextInt(1000000000));
 
-        return new Employee(firstName, lastName, employeeID, jobTitle, randomSalary, email, phoneNumber);
+        return new Employee(firstName, lastName, currentID, jobTitle, randomSalary, email, phoneNumber);
     }
 
     private void updateEmployeeTable() {
@@ -179,17 +164,17 @@ public class EmployeeDatabaseGUI {
         frame.setVisible(true);
     }
 
-    private class EmployeeDialog extends JDialog {
-        private AtomicReference<Employee> employeeReference;
+    private static class EmployeeDialog extends JDialog {
+        private final AtomicReference<Employee> employeeReference;
         private boolean employeeAdded;
 
-        private JTextField firstNameField;
-        private JTextField lastNameField;
-        private JTextField jobTitleField;
-        private JTextField salaryField;
-        private JTextField emailField;
-        private JTextField phoneNumberField;
-        private JTextField employeeIDField;
+        private final JTextField firstNameField;
+        private final JTextField lastNameField;
+        private final JTextField jobTitleField;
+        private final JTextField salaryField;
+        private final JTextField emailField;
+        private final JTextField phoneNumberField;
+        private final JTextField employeeIDField;
 
         public EmployeeDialog(JFrame parent, String title, Employee employee) {
             super(parent, title, true);
@@ -238,25 +223,17 @@ public class EmployeeDatabaseGUI {
             panel.add(employeeIDField);
 
             JButton addButton = new JButton("Add");
-            addButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (validateInput()) {
-                        Employee newEmployee = createEmployee();
-                        employeeReference.set(newEmployee);
-                        employeeAdded = true;
-                        dispose();
-                    }
+            addButton.addActionListener(e -> {
+                if (validateInput()) {
+                    Employee newEmployee = createEmployee();
+                    employeeReference.set(newEmployee);
+                    employeeAdded = true;
+                    dispose();
                 }
             });
 
             JButton cancelButton = new JButton("Cancel");
-            cancelButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    dispose();
-                }
-            });
+            cancelButton.addActionListener(e -> dispose());
 
             panel.add(addButton);
             panel.add(cancelButton);
@@ -273,7 +250,6 @@ public class EmployeeDatabaseGUI {
             double salary;
             String email = emailField.getText().trim();
             String phoneNumber = phoneNumberField.getText().trim();
-            int employeeID;
 
             if (firstName.isEmpty() || lastName.isEmpty() || jobTitle.isEmpty() || email.isEmpty() || phoneNumber.isEmpty()) {
                 showError("All fields are required.");
@@ -298,13 +274,6 @@ public class EmployeeDatabaseGUI {
 
             if (!Pattern.matches("^\\d{10}$", phoneNumber)) {
                 showError("Invalid Phone Number Format (10 digits without spaces or dashes).");
-                return false;
-            }
-
-            try {
-                employeeID = Integer.parseInt(employeeIDField.getText());
-            } catch (NumberFormatException ex) {
-                showError("Invalid Employee ID. Please enter a valid number.");
                 return false;
             }
 
@@ -339,12 +308,9 @@ public class EmployeeDatabaseGUI {
     public static void main(String[] args) {
         EmployeeManager employeeManager = new EmployeeManager();
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                EmployeeDatabaseGUI gui = new EmployeeDatabaseGUI(employeeManager);
-                gui.show();
-            }
+        SwingUtilities.invokeLater(() -> {
+            EmployeeDatabaseGUI gui = new EmployeeDatabaseGUI(employeeManager);
+            gui.show();
         });
     }
 }

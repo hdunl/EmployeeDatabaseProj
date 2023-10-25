@@ -13,6 +13,7 @@ class AVLNode {
     }
 }
 
+@SuppressWarnings("ALL")
 public class AVLTree {
     private AVLNode root;
 
