@@ -226,29 +226,6 @@ public class AVLTree {
         return search(root, employeeID);
     }
 
-    // Helper method to search for an employee by full name
-    private void searchByName(AVLNode node, String fullName, List<Employee> result) {
-        if (node != null) {
-            searchByName(node.left, fullName, result);
-
-            // Check if the full name matches
-            String fullNameInTree = node.employee.getFirstName() + " " +
-                    node.employee.getLastName();
-            if (fullNameInTree.equalsIgnoreCase(fullName)) {
-                result.add(node.employee);
-            }
-
-            searchByName(node.right, fullName, result);
-        }
-    }
-
-    // Public method to search for employees by full name
-    public List<Employee> searchByName(String fullName) {
-        List<Employee> result = new ArrayList<>();
-        searchByName(root, fullName, result);
-        return result;
-    }
-
     // Helper method to traverse the tree in-order and add employees to a list
     private void inOrderTraversal(AVLNode node, List<Employee> result) {
         if (node != null) {

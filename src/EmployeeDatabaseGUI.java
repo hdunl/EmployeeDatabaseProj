@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Pattern;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,10 +13,12 @@ public class EmployeeDatabaseGUI {
     private EmployeeManager employeeManager;
     private DefaultTableModel tableModel;
     private JTable employeeTable;
+    private String[] firstNames = {"James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Susan", "Joseph", "Jessica", "Charles", "Karen", "Thomas", "Nancy", "Daniel", "Lisa", "Matthew", "Betty", "Christopher", "Dorothy"};
+    private String[] lastNames = {"Smith", "Johnson", "Brown", "Williams", "Jones", "Miller", "Davis", "García", "Rodriguez", "Martinez", "Hernandez", "López", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "White", "Harris", "Clark", "Lewis", "Young", "Walker"};
+    private String[] jobTitles = {"Programmer", "UI/UX Designer", "Systems Engineer", "Cybersecurity Architect", "Sales", "Data Analyst", "Network Administrator", "Database Administrator", "DevOps Engineer", "Cloud Architect", "Web Developer", "Software Engineer", "IT Support Specialist", "Digital Marketing Specialist", "Product Manager", "Artificial Intelligence (AI) Engineer", "Machine Learning Engineer", "Quality Assurance (QA) Tester", "Business Analyst", "Project Manager", "Network Engineer", "Front-End Developer", "Back-End Developer", "Scrum Master", "Technical Writer"};
 
     public EmployeeDatabaseGUI(EmployeeManager employeeManager) {
         this.employeeManager = employeeManager;
-
         frame = new JFrame("Employee Database");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 400);
@@ -36,6 +39,7 @@ public class EmployeeDatabaseGUI {
         JButton addButton = new JButton("Add Employee");
         JButton searchButton = new JButton("Search Employee");
         JButton deleteButton = new JButton("Delete Employee");
+        JButton populateDatabaseButton = new JButton("Populate Database");
 
         final Employee[] employee = {null};
 
@@ -47,8 +51,11 @@ public class EmployeeDatabaseGUI {
 
                 if (dialog.isEmployeeAdded()) {
                     employee[0] = dialog.getEmployee();
+                    long startTime = System.nanoTime();
                     employeeManager.insertEmployee(employee[0]);
+                    long endTime = System.nanoTime();
                     updateEmployeeTable();
+                    JOptionPane.showMessageDialog(frame, "Addition time: " + (endTime - startTime) + " ns", "Employee Addition", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         });
@@ -60,10 +67,13 @@ public class EmployeeDatabaseGUI {
                 if (input != null && !input.isEmpty()) {
                     try {
                         int employeeID = Integer.parseInt(input);
+                        long startTime = System.nanoTime();
                         Employee foundEmployee = employeeManager.searchEmployee(employeeID);
+                        long endTime = System.nanoTime();
 
                         if (foundEmployee != null) {
                             displayEmployee(foundEmployee);
+                            JOptionPane.showMessageDialog(frame, "Search time: " + (endTime - startTime) + " ns", "Employee Search", JOptionPane.INFORMATION_MESSAGE);
                         } else {
                             JOptionPane.showMessageDialog(frame, "Employee not found.", "Search Result", JOptionPane.INFORMATION_MESSAGE);
                         }
@@ -81,10 +91,35 @@ public class EmployeeDatabaseGUI {
                 if (input != null && !input.isEmpty()) {
                     try {
                         int employeeID = Integer.parseInt(input);
+                        long startTime = System.nanoTime();
                         employeeManager.deleteEmployee(employeeID);
+                        long endTime = System.nanoTime();
                         updateEmployeeTable();
+                        JOptionPane.showMessageDialog(frame, "Deletion time: " + (endTime - startTime) + " ns", "Employee Deletion", JOptionPane.INFORMATION_MESSAGE);
                     } catch (NumberFormatException ex) {
                         JOptionPane.showMessageDialog(frame, "Invalid Employee ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        populateDatabaseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String input = JOptionPane.showInputDialog(frame, "Enter number of employees to generate:");
+                if (input != null && !input.isEmpty()) {
+                    try {
+                        int numberOfEmployees = Integer.parseInt(input);
+                        long startTime = System.currentTimeMillis();
+                        for (int i = 0; i < numberOfEmployees; i++) {
+                            Employee employee = generateRandomEmployee(i + 1, numberOfEmployees);
+                            employeeManager.insertEmployee(employee);
+                        }
+                        long endTime = System.currentTimeMillis();
+                        JOptionPane.showMessageDialog(frame, "Population time: " + (endTime - startTime) + " ms", "Database Population", JOptionPane.INFORMATION_MESSAGE);
+                        updateEmployeeTable();
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(frame, "Invalid number.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -94,6 +129,7 @@ public class EmployeeDatabaseGUI {
         buttonPanel.add(addButton);
         buttonPanel.add(searchButton);
         buttonPanel.add(deleteButton);
+        buttonPanel.add(populateDatabaseButton);
 
         frame.setLayout(new BorderLayout());
         frame.add(tableScrollPane, BorderLayout.CENTER);
@@ -102,6 +138,20 @@ public class EmployeeDatabaseGUI {
 
     private void displayEmployee(Employee employee) {
         JOptionPane.showMessageDialog(frame, employee.toString(), "Employee Details", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private Employee generateRandomEmployee(int currentID, int maxID) {
+        Random random = new Random();
+        String firstName = firstNames[random.nextInt(firstNames.length)];
+        String lastName = lastNames[random.nextInt(lastNames.length)];
+        int employeeID = currentID;
+        String jobTitle = jobTitles[random.nextInt(jobTitles.length)];
+        double randomSalaryBase = 20000 + random.nextInt(80000);
+        double randomSalary = randomSalaryBase - (randomSalaryBase % 100);
+        String email = firstName.toLowerCase() + "." + lastName.toLowerCase() + "@company.com";
+        String phoneNumber = String.format("%010d", random.nextInt(1000000000));
+
+        return new Employee(firstName, lastName, employeeID, jobTitle, randomSalary, email, phoneNumber);
     }
 
     private void updateEmployeeTable() {
@@ -127,18 +177,6 @@ public class EmployeeDatabaseGUI {
     public void show() {
         updateEmployeeTable();
         frame.setVisible(true);
-    }
-
-    public static void main(String[] args) {
-        EmployeeManager employeeManager = new EmployeeManager();
-
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                EmployeeDatabaseGUI gui = new EmployeeDatabaseGUI(employeeManager);
-                gui.show();
-            }
-        });
     }
 
     private class EmployeeDialog extends JDialog {
@@ -200,7 +238,6 @@ public class EmployeeDatabaseGUI {
             panel.add(employeeIDField);
 
             JButton addButton = new JButton("Add");
-
             addButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -297,5 +334,17 @@ public class EmployeeDatabaseGUI {
         public boolean isEmployeeAdded() {
             return employeeAdded;
         }
+    }
+
+    public static void main(String[] args) {
+        EmployeeManager employeeManager = new EmployeeManager();
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                EmployeeDatabaseGUI gui = new EmployeeDatabaseGUI(employeeManager);
+                gui.show();
+            }
+        });
     }
 }
