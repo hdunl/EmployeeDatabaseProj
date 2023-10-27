@@ -1,9 +1,5 @@
 # Employee Database Application
 
-## Overview
-
-This Employee Database Application allows users to manage employee information efficiently. It provides a user-friendly graphical interface for adding, searching, and deleting employee records while ensuring data integrity through the use of an AVL tree data structure.
-
 ## Initialization of EmployeeManager
 
 - When you click "Run," an `EmployeeManager` object is created to initialize the employee database.
