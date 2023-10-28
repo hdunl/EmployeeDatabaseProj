@@ -1,6 +1,8 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,6 +34,7 @@ public class EmployeeDatabaseGUI {
                 return false; // Make cells non-editable
             }
         };
+        setUpColumnSorting(employeeTable);
         JScrollPane tableScrollPane = new JScrollPane(employeeTable);
 
         JButton addButton = new JButton("Add Employee");
@@ -120,6 +123,44 @@ public class EmployeeDatabaseGUI {
         frame.setLayout(new BorderLayout());
         frame.add(tableScrollPane, BorderLayout.CENTER);
         frame.add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private void setUpColumnSorting(JTable employeeTable) {
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
+        employeeTable.setRowSorter(sorter);
+
+        // Enable sorting for each column
+        for (int i = 0; i < tableModel.getColumnCount(); i++) {
+            sorter.setComparator(i, (Comparator<?>) new EmployeeColumnComparator(i));
+        }
+    }
+
+    private class EmployeeColumnComparator implements Comparator<Object> {
+        private final int columnIndex;
+
+        public EmployeeColumnComparator(int columnIndex) {
+            this.columnIndex = columnIndex;
+        }
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            String s1 = o1.toString();
+            String s2 = o2.toString();
+
+            if (columnIndex == 0 || columnIndex == 4) {
+                // Sort Employee ID and Salary as integers
+                try {
+                    int num1 = Integer.parseInt(s1);
+                    int num2 = Integer.parseInt(s2);
+                    return Integer.compare(num1, num2);
+                } catch (NumberFormatException e) {
+                    return s1.compareTo(s2);
+                }
+            } else {
+                // Sort other columns as strings
+                return s1.compareTo(s2);
+            }
+        }
     }
 
     private void displayEmployee(Employee employee) {
