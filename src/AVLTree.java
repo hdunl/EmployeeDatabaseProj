@@ -74,7 +74,7 @@ public class AVLTree {
         return y;
     }
 
-    // Helper method to balance the tree after an insertion
+    // Helper method to insert an employee into the AVL tree
     private AVLNode insert(AVLNode node, Employee employee) {
         if (node == null) {
             if (employee != null)
@@ -204,11 +204,6 @@ public class AVLTree {
         return root;
     }
 
-    // Public method to delete an employee by employee ID
-    public void delete(int employeeID) {
-        root = delete(root, employeeID);
-    }
-
     // Helper method to search for an employee by employee ID
     private Employee search(AVLNode node, int employeeID) {
         if (node == null)
@@ -222,9 +217,9 @@ public class AVLTree {
             return search(node.right, employeeID);
     }
 
-    // Public method to search for an employee by employee ID
-    public Employee search(int employeeID) {
-        return search(root, employeeID);
+    // Public method to delete an employee by employee ID
+    public void delete(int employeeID) {
+        root = delete(root, employeeID);
     }
 
     // Helper method to traverse the tree in-order and add employees to a list

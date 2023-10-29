@@ -17,13 +17,11 @@ public class EmployeeManager {
         avlTree.delete(employeeID);
     }
 
-    // Method to search for an employee by employee ID
-    public Employee searchEmployee(int employeeID) {
-        return avlTree.search(employeeID);
-    }
 
     // Method to retrieve a list of all employees
     public List<Employee> getAllEmployees() {
         return avlTree.getAllEmployees();
     }
+
+
 }
